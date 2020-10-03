@@ -2,6 +2,7 @@ import 'package:faker/faker.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import 'package:Surveys/domain/helpers/helpers.dart';
 import 'package:Surveys/domain/usecases/usecases.dart';
 
 import 'package:Surveys/data/http/http.dart';
@@ -31,5 +32,15 @@ void main() {
         'email': params.email, 'password': params.password
       }
     ));
+  });
+
+  test('Should throw UnexpectedError if HttpClient return 400', () async {
+    when(httpClient.request(url: anyNamed('url'), method: anyNamed('method'), body: anyNamed('body')))
+      .thenThrow(HttpError.badRequest);
+
+    final params = AuthenticationParams(email: faker.internet.email(), password: faker.internet.password());
+    final future = sut.auth(params);
+
+    expect(future, throwsA(DomainError.unexpected));
   });
 }
