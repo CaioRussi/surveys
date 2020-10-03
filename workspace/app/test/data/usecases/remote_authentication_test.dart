@@ -14,22 +14,24 @@ void main() {
   RemoteAuthentication sut;
   HttpClientSpy httpClient;
   String url;
+  AuthenticationParams params;
 
   setUp(() {
     httpClient = HttpClientSpy();
     url = faker.internet.httpUrl();
     sut = RemoteAuthentication(httpClient: httpClient, url: url);
+    params = AuthenticationParams(email: faker.internet.email(), password: faker.internet.password());
   });
 
   test('Should call httpClient with correct values', () async {
-    final params = AuthenticationParams(email: faker.internet.email(), password: faker.internet.password());
     await sut.auth(params);
 
     verify(httpClient.request(
       url: url,
       method: 'post',
       body: {
-        'email': params.email, 'password': params.password
+        'email': params.email, 
+        'password': params.password
       }
     ));
   });
@@ -38,7 +40,6 @@ void main() {
     when(httpClient.request(url: anyNamed('url'), method: anyNamed('method'), body: anyNamed('body')))
       .thenThrow(HttpError.badRequest);
 
-    final params = AuthenticationParams(email: faker.internet.email(), password: faker.internet.password());
     final future = sut.auth(params);
 
     expect(future, throwsA(DomainError.unexpected));
